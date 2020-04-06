@@ -10,8 +10,12 @@ class Astronaut
     @@all << self
   end  
 
+  def missions
+    Mission.all.select { |mission| mission.astronaut == self }
+  end
+
   def shuttles
-    Mission.all.select { |mission| mission.astronaut == self }.map { |mission| mission.shuttle }
+    missions.map { |mission| mission.shuttle }
   end
   
   def shuttle_full?(shuttle, launch_date)
@@ -19,6 +23,8 @@ class Astronaut
   end
 
   def join_shuttle(shuttle, launch_date)
+    return "You're not old enough" if @age < shuttle.minimum_age
+
     if !shuttle_full?(shuttle, launch_date)
       Mission.new(self, shuttle, launch_date)
     else
@@ -26,15 +32,22 @@ class Astronaut
     end
   end
 
+  def fellow_mission_members
+    my_shuttle = Mission.all.find { |mission| mission.astronaut == self }.shuttle
+    Mission.all.select { |mission| mission.shuttle == my_shuttle }.map { |mission| mission.astronaut }
+  end
+
   def self.all
     @@all
   end
 
   def self.most_missions
-    mars_astronauts = Mission.all.select { |mission| mission.destination == "mars" }.map { |mission| mission.astronaut }
-    count = Hash.new(0)
-    mars_astronauts.each { |astronaut| count[astronaut] += 1 }
-    count.max_by { |key, value| value }
+    mars_missions = Mission.all.select { |mission| mission.destination == "mars" }
+    mars_missions.max_by { |mission| mission.astronaut.missions.count }
+  end
+
+  def self.top_three
+    all.max_by(3) { |astronauts| astronauts.missions.count }
   end
 end
 

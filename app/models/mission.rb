@@ -14,4 +14,8 @@ class Mission
   def self.all
     @@all
   end
+
+  def self.first_launch
+    @@all.find { |mission| mission.destination == "mars" }.astronaut
+  end
 end
